@@ -1,0 +1,20 @@
+.b-carousel-slide
+{
+    position: absolute;
+
+    float: left;
+
+    width: 100%;
+    height: 300px;
+}
+
+.b-carousel-slide__img
+{
+    position: absolute;
+    z-index: -1;
+    top: 0;
+
+    display: block;
+
+    width: 100%;
+}
