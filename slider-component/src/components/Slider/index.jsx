@@ -10,21 +10,13 @@ export class Slider extends React.PureComponent {
     static propTypes = {
         url: PropTypes.string.isRequired,
         duration: PropTypes.number,
+        slides: PropTypes.arrayOf(PropTypes.object),
     };
     static defaultProps = {
         duration: 400,
         width: 960,
         height: 300,
-    };
-    constructor(props) {
-        super(props);
-        this.state = {
-            index: 0,
-            carouselStyle: {
-                width: props.width,
-            }
-        };
-        this._slidesData = [{
+        slides: [{
             text: "first slide",
             header: "first",
             url: "http://placekitten.com/400/200",
@@ -36,13 +28,63 @@ export class Slider extends React.PureComponent {
             text: "third slide",
             header: "third",
             url: "http://placekitten.com/400/202",
-        }];
-        this._slides = [...this._slidesData];
+        }],
+    };
+    constructor(props) {
+        super(props);
+        this.state = {
+            index: 0,
+            carouselStyle: {
+                width: props.width * props.slides.length,
+            },
+            slides: props.slides.map((s, i) => ({
+                offset: i * props.width,
+                index: i,
+            })),
+        };
     }
+    _updateSlides(delta) {
+        const scopeWidth = this.props.width * this.props.slides.length;
+        const result = this.state.slides.map((slide, i) => {
+            let newOffset = slide.offset + delta * this.props.width;
+            if (Math.abs(newOffset) >= scopeWidth) {
+                newOffset = -(newOffset % scopeWidth);
+            }
+            return {
+                ...slide,
+                offset: newOffset,
+            }
+        });
+        return result;
+    }
+    _getNewIndex(delta) {
+        let newIndex = this.state.index + delta;
+        if (newIndex < 0) {
+            newIndex = 0;
+        } else if (newIndex >= this.props.slides.length) {
+            newIndex = this.props.slides.length - 1;
+        }
+        return newIndex;
+    }
+    incIndex = () => {
+        const slides = this._updateSlides(1);
+        this.setState({
+            index: this._getNewIndex(1),
+            slides,
+        })
+    };
+    decIndex = () => {
+        const slides = this._updateSlides(-1);
+        this.setState({
+            index: this._getNewIndex(-1),
+            slides,
+        })
+    };
     render() {
         const {
             width,
             height,
+            slides,
         } = this.props;
         return (
             <div className="b-carousel-container" style={{
@@ -51,11 +93,11 @@ export class Slider extends React.PureComponent {
             }}>
                 <ul className="b-carousel" style={this.state.carouselStyle}>
                     {
-                        this._slides.map((slide, i) => (
+                        this.state.slides.map((slide, i) => (
                             <Slide
-                                {...slide}
-                                key={i + slide.url}
-                                offset={(width * i) - (this.state.index * width)}
+                                {...slides[slide.index]}
+                                offset={slide.offset}
+                                key={`${i}-slide.url`}
                                 width={width}
                                 height={height}
                             />
@@ -63,8 +105,8 @@ export class Slider extends React.PureComponent {
                     }
                 </ul>
                 <div className="b-carousel__controls">
-                    <div className="b-carousel__arrow-left"></div>
-                    <div className="b-carousel__arrow-right"></div>
+                    <div className="b-carousel__arrow-left" onClick={this.incIndex}></div>
+                    <div className="b-carousel__arrow-right" onClick={this.decIndex}></div>
                 </div>
             </div>
         );

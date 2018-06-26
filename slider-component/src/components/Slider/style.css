@@ -54,6 +54,7 @@
     height: 100%;
 
     cursor: pointer;
+    user-select: none;
 }
 
 .b-carousel__arrow-right
