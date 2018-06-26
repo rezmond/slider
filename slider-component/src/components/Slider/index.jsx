@@ -14,7 +14,6 @@ export class Slider extends React.PureComponent {
     };
     static defaultProps = {
         duration: 400,
-        width: 960,
         height: 300,
         slides: [{
             text: "first slide",
@@ -34,27 +33,39 @@ export class Slider extends React.PureComponent {
         super(props);
         this.state = {
             index: 0,
-            carouselStyle: {
-                width: props.width * props.slides.length,
-                transform: `translate(-${props.width}px, 0)`,
-            },
-            slides: this._updateSlides(props.slides.map((s, i) => ({
-                offset: i * props.width,
-                index: i,
-            })), 0),
+            slides: [],
+            width: props.width,
         };
         this._carouselNode = null;
         this._onTransformEnd = () => {};
     }
     _onTransitionEndHandler = () => this._onTransformEnd();
+    _refreshWidth () {
+        const width = this._containerNode.offsetWidth;
+        this.setState(() => ({
+            width,
+            carouselStyle: {
+                width: width * this.props.slides.length,
+                transform: `translate(-${width}px, 0)`,
+            },
+            slides: this._updateSlides(this.props.slides.map((s, i) => ({
+                index: i,
+            })), 0, width),
+        }));
+    }
+    _onWithChange = e => {
+        this._refreshWidth();
+    };
     componentDidMount() {
         this._carouselNode.addEventListener("transitionend", this._onTransitionEndHandler);
+        window.addEventListener('resize', this._onWithChange);
+        this._refreshWidth();
     }
     componentWillUnmount() {
         this._carouselNode.removeEventListener("transitionend", this._onTransitionEndHandler);
+        window.removeEventListener('resize', this._onWithChange);
     }
-    _updateSlides(slides, delta) {
-        const scopeWidth = this.props.width * this.props.slides.length;
+    _updateSlides(slides, delta, width=null) {
         let newSlides;
         if (delta < 0) {
             newSlides = [...slides.slice(1), slides[0]];
@@ -63,7 +74,7 @@ export class Slider extends React.PureComponent {
         }
         const result = newSlides.map((slide, i) => ({
             ...slide,
-            offset: i * this.props.width,
+            offset: i * (width || this.state.width),
         }))
         return result;
     }
@@ -84,7 +95,7 @@ export class Slider extends React.PureComponent {
                 slides,
                 carouselStyle: {
                     ...this.state,
-                    transform: `translate(-${this.props.width}px, 0)`,
+                    transform: `translate(-${this.state.width}px, 0)`,
                     transition: 'unset',
                 }
             });
@@ -101,10 +112,13 @@ export class Slider extends React.PureComponent {
         this._move(1, 0);
     };
     decIndex = () => {
-        this._move(-1, -this.props.width * 2);
+        this._move(-1, -this.state.width * 2);
     };
     _grabCarouselNode = c => {
         this._carouselNode = c;
+    };
+    _grabContainer = c => {
+        this._containerNode = c;
     };
     render() {
         const {
@@ -113,10 +127,14 @@ export class Slider extends React.PureComponent {
             slides,
         } = this.props;
         return (
-            <div className="b-carousel-container" style={{
-                width,
-                height,
-            }}>
+            <div
+                ref={this._grabContainer}
+                className="b-carousel-container"
+                style={{
+                    height,
+                    width,
+                }}
+            >
                 <ul
                     ref={this._grabCarouselNode}
                     className="b-carousel"
@@ -128,7 +146,7 @@ export class Slider extends React.PureComponent {
                                 {...slides[slide.index]}
                                 offset={slide.offset}
                                 key={`${i}-slide.url`}
-                                width={width}
+                                width={this.state.width}
                                 height={height}
                             />
                         ))
