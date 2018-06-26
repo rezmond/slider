@@ -18,3 +18,9 @@
 
     width: 100%;
 }
+
+.b-carousel-slide__header,
+.b-carousel-slide__text {
+    color: #fff;
+    text-shadow: 1px 1px 1px #000;
+}
