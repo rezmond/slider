@@ -10,10 +10,12 @@ import './style.css';
 export class Slider extends React.PureComponent {
     static propTypes = {
         url: PropTypes.string.isRequired,
+        delay: PropTypes.number,
         duration: PropTypes.number,
     };
     static defaultProps = {
-        duration: 400,
+        delay: 2000,
+        duration: 700,
         height: 300,
     };
     constructor(props) {
@@ -52,6 +54,12 @@ export class Slider extends React.PureComponent {
             window.addEventListener('resize', this._onWithChange);
             this._refreshWidth();
         });
+
+        if (this.props.delay) {
+            setInterval(() => {
+                this.decIndex();
+            }, this.props.delay)
+        }
     }
     componentWillUnmount() {
         this._carouselNode.removeEventListener("transitionend", this._onTransitionEndHandler);
@@ -96,7 +104,7 @@ export class Slider extends React.PureComponent {
             carouselStyle: {
                 ...state,
                 transform: `translate(${newPositionX}px, 0)`,
-                transition: 'transform .7s ease',
+                transition: `transform ${this.props.duration}ms ease`,
             }
         }));
     }
