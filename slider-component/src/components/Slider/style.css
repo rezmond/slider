@@ -1,0 +1,100 @@
+
+.b-carousel-container
+{
+    position: relative;
+
+    overflow: hidden;
+
+    width: 100%;
+    max-width: 100%;
+}
+
+.b-carousel
+{
+    position: absolute;
+
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    list-style: none;
+}
+
+.b-carousel::after
+{
+    display: block;
+    clear: left;
+
+    content: '';
+}
+
+.b-carousel__controls
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    margin: auto;
+
+    transition: opacity 300ms linear;
+
+    opacity: 0;
+}
+
+.b-carousel-container:hover .b-carousel__controls
+{
+    opacity: 1;
+}
+
+.b-carousel__arrow-left,
+.b-carousel__arrow-right
+{
+    position: absolute;
+
+    width: 40px;
+    height: 100%;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.b-carousel__arrow-right
+{
+    right: 0;
+}
+
+.b-carousel__arrow-left:hover,
+.b-carousel__arrow-right:hover
+{
+    background-image: linear-gradient(to left, transparent 0, rgba(0,0,0,.35) 5%);
+}
+
+.b-carousel__arrow-left::after,
+.b-carousel__arrow-right::after
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    display: block;
+
+    box-sizing: border-box;
+    width: 20px;
+    height: 30px;
+    margin: auto;
+
+    content: '';
+
+    border-top: 20px solid transparent;
+    border-right: 20px solid #fff;
+    border-bottom: 20px solid transparent;
+}
+
+.b-carousel__arrow-right
+{
+    transform: rotate(180deg);
+}
