@@ -3,8 +3,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import {Slide} from "./components/Slide";
-import "./style.css";
+import {Slide} from './components/Slide';
+import './style.css';
 
 export class Slider extends React.PureComponent {
     static propTypes = {

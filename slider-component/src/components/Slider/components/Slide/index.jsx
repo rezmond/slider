@@ -3,7 +3,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-import "./style.css";
+import './style.css';
 
 const slidePropTypes = {
     header: PropTypes.string,
