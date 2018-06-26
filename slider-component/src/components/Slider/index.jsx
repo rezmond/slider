@@ -36,25 +36,35 @@ export class Slider extends React.PureComponent {
             index: 0,
             carouselStyle: {
                 width: props.width * props.slides.length,
+                transform: `translate(-${props.width}px, 0)`,
             },
-            slides: props.slides.map((s, i) => ({
+            slides: this._updateSlides(props.slides.map((s, i) => ({
                 offset: i * props.width,
                 index: i,
-            })),
+            })), 0),
         };
+        this._carouselNode = null;
+        this._onTransformEnd = () => {};
     }
-    _updateSlides(delta) {
+    _onTransitionEndHandler = () => this._onTransformEnd();
+    componentDidMount() {
+        this._carouselNode.addEventListener("transitionend", this._onTransitionEndHandler);
+    }
+    componentWillUnmount() {
+        this._carouselNode.removeEventListener("transitionend", this._onTransitionEndHandler);
+    }
+    _updateSlides(slides, delta) {
         const scopeWidth = this.props.width * this.props.slides.length;
-        const result = this.state.slides.map((slide, i) => {
-            let newOffset = slide.offset + delta * this.props.width;
-            if (Math.abs(newOffset) >= scopeWidth) {
-                newOffset = -(newOffset % scopeWidth);
-            }
-            return {
-                ...slide,
-                offset: newOffset,
-            }
-        });
+        let newSlides;
+        if (delta < 0) {
+            newSlides = [...slides.slice(1), slides[0]];
+        } else {
+            newSlides = [slides[slides.length - 1], ...slides.slice(0, slides.length - 1)];
+        }
+        const result = newSlides.map((slide, i) => ({
+            ...slide,
+            offset: i * this.props.width,
+        }))
         return result;
     }
     _getNewIndex(delta) {
@@ -66,19 +76,35 @@ export class Slider extends React.PureComponent {
         }
         return newIndex;
     }
+    _move (delta, newPositionX) {
+        const slides = this._updateSlides(this.state.slides, delta);
+        this._onTransformEnd = () => {
+            this.setState({
+                index: this._getNewIndex(delta),
+                slides,
+                carouselStyle: {
+                    ...this.state,
+                    transform: `translate(-${this.props.width}px, 0)`,
+                    transition: 'unset',
+                }
+            });
+        };
+        this.setState(state => ({
+            carouselStyle: {
+                ...state,
+                transform: `translate(${newPositionX}px, 0)`,
+                transition: 'transform .7s ease',
+            }
+        }));
+    }
     incIndex = () => {
-        const slides = this._updateSlides(1);
-        this.setState({
-            index: this._getNewIndex(1),
-            slides,
-        })
+        this._move(1, 0);
     };
     decIndex = () => {
-        const slides = this._updateSlides(-1);
-        this.setState({
-            index: this._getNewIndex(-1),
-            slides,
-        })
+        this._move(-1, -this.props.width * 2);
+    };
+    _grabCarouselNode = c => {
+        this._carouselNode = c;
     };
     render() {
         const {
@@ -91,7 +117,11 @@ export class Slider extends React.PureComponent {
                 width,
                 height,
             }}>
-                <ul className="b-carousel" style={this.state.carouselStyle}>
+                <ul
+                    ref={this._grabCarouselNode}
+                    className="b-carousel"
+                    style={this.state.carouselStyle}
+                >
                     {
                         this.state.slides.map((slide, i) => (
                             <Slide
