@@ -14,7 +14,7 @@ export default class App extends Component {
           <h1 className="App-title">My slider</h1>
         </header>
         <div className="App-intro">
-          <Slider/>
+          <Slider url="example.com" />
         </div>
       </div>
     );

@@ -4,38 +4,26 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import {Slide} from './components/Slide';
+import * as api from './api';
 import './style.css';
 
 export class Slider extends React.PureComponent {
     static propTypes = {
         url: PropTypes.string.isRequired,
         duration: PropTypes.number,
-        slides: PropTypes.arrayOf(PropTypes.object),
     };
     static defaultProps = {
         duration: 400,
         height: 300,
-        slides: [{
-            text: "first slide",
-            header: "first",
-            url: "http://placekitten.com/400/200",
-        }, {
-            text: "second slide",
-            header: "second",
-            url: "http://placekitten.com/400/201",
-        }, {
-            text: "third slide",
-            header: "third",
-            url: "http://placekitten.com/400/202",
-        }],
     };
     constructor(props) {
         super(props);
         this.state = {
             index: 0,
-            slides: [],
             width: props.width,
+            slides: [],
         };
+        this._slidesData = null;
         this._carouselNode = null;
         this._onTransformEnd = () => {};
     }
@@ -45,10 +33,10 @@ export class Slider extends React.PureComponent {
         this.setState(() => ({
             width,
             carouselStyle: {
-                width: width * this.props.slides.length,
+                width: width * this._slidesData.length,
                 transform: `translate(-${width}px, 0)`,
             },
-            slides: this._updateSlides(this.props.slides.map((s, i) => ({
+            slides: this._updateSlides(this._slidesData.map((s, i) => ({
                 index: i,
             })), 0, width),
         }));
@@ -58,8 +46,12 @@ export class Slider extends React.PureComponent {
     };
     componentDidMount() {
         this._carouselNode.addEventListener("transitionend", this._onTransitionEndHandler);
-        window.addEventListener('resize', this._onWithChange);
-        this._refreshWidth();
+        api.getIamges(this.props.url).then(({data}) => {
+            console.log("data", data);
+            this._slidesData = data.slides;
+            window.addEventListener('resize', this._onWithChange);
+            this._refreshWidth();
+        });
     }
     componentWillUnmount() {
         this._carouselNode.removeEventListener("transitionend", this._onTransitionEndHandler);
@@ -82,8 +74,8 @@ export class Slider extends React.PureComponent {
         let newIndex = this.state.index + delta;
         if (newIndex < 0) {
             newIndex = 0;
-        } else if (newIndex >= this.props.slides.length) {
-            newIndex = this.props.slides.length - 1;
+        } else if (newIndex >= this._slidesData.length) {
+            newIndex = this._slidesData.length - 1;
         }
         return newIndex;
     }
@@ -124,7 +116,6 @@ export class Slider extends React.PureComponent {
         const {
             width,
             height,
-            slides,
         } = this.props;
         return (
             <div
@@ -143,7 +134,7 @@ export class Slider extends React.PureComponent {
                     {
                         this.state.slides.map((slide, i) => (
                             <Slide
-                                {...slides[slide.index]}
+                                {...this._slidesData[slide.index]}
                                 offset={slide.offset}
                                 key={`${i}-slide.url`}
                                 width={this.state.width}
